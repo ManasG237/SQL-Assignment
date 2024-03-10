@@ -1,0 +1,282 @@
+-- Query 1: List all books with their respective authors and average ratings 
+SELECT 
+Books.title, 
+AuthorsTable.author_name, 
+AVG(ReviewsTable.rating) AS average_rating 
+FROM 
+Books 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+LEFT JOIN 
+ReviewsTable ON Books.book_id = ReviewsTable.book_id 
+GROUP BY 
+Books.title, AuthorsTable.author_name 
+ORDER BY 
+average_rating DESC; -- Query 2: Calculate the total number of copies available for each book 
+SELECT 
+title, 
+author_name, 
+SUM(BookCopiesTable.quantity_available) AS total_copies_available 
+FROM 
+Books 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+GROUP BY 
+title, author_name; -- Query 3: List the top 10 most borrowed books 
+SELECT 
+Books.title, 
+AuthorsTable.author_name, 
+COUNT(BorrowingsTable.borrowing_id) AS borrowing_count 
+FROM 
+Books 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+JOIN 
+BorrowingsTable ON Books.book_id = BorrowingsTable.book_id 
+GROUP BY 
+Books.title, AuthorsTable.author_name 
+ORDER BY 
+borrowing_count DESC 
+LIMIT 10; -- Query 4: Calculate the average number of days a book is borrowed for 
+SELECT 
+AVG(DATEDIFF(return_date, borrowing_date)) AS average_days_borrowed 
+FROM 
+BorrowingsTable 
+WHERE 
+is_returned = true; -- Query 5: Identify members who have borrowed more than once 
+SELECT 
+MembersTable.member_id, 
+MembersTable.member_name, 
+MembersTable.member_email, 
+MembersTable.member_phone, 
+COUNT(BorrowingsTable.borrowing_id) AS borrowings_count 
+FROM 
+MembersTable 
+JOIN 
+BorrowingsTable ON MembersTable.member_id = BorrowingsTable.member_id 
+GROUP BY 
+MembersTable.member_id, MembersTable.member_name, MembersTable.member_email, 
+MembersTable.member_phone 
+HAVING 
+borrowings_count > 1; -- Query 6: List all books with their respective authors and publishers 
+SELECT 
+Books.title, 
+AuthorsTable.author_name, 
+PublishersTable.publisher_name 
+FROM 
+Books 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+LEFT JOIN 
+PublishersTable ON Books.publisher_id = PublishersTable.publisher_id; -- Query 7: Find the total revenue generated from book purchases 
+SELECT 
+SUM(amount_paid) AS total_revenue 
+FROM 
+TransactionsTable 
+WHERE 
+transaction_type = 'purchase'; -- Query 8: Find the total number of books published in each year 
+SELECT 
+YEAR(publication_date) AS publication_year, 
+COUNT(book_id) AS total_books_published 
+FROM 
+Books 
+GROUP BY 
+publication_year 
+ORDER BY 
+publication_year; -- Query 9: Identify members who have overdue books 
+SELECT 
+MembersTable.member_id, 
+MembersTable.member_name, 
+MembersTable.member_email, 
+MembersTable.member_phone 
+FROM 
+MembersTable 
+JOIN 
+BorrowingsTable ON MembersTable.member_id = BorrowingsTable.member_id 
+WHERE 
+BorrowingsTable.is_returned = false 
+AND BorrowingsTable.return_date < CURRENT_DATE; 
+1) 
+SELECT Books.title, Books.author, Books.genre, Books.publication_date, Books.isbn 
+FROM Books 
+JOIN BorrowingsTable ON Books.book_id = BorrowingsTable.book_id 
+JOIN MembersTable ON BorrowingsTable.member_id = MembersTable.member_id 
+WHERE MembersTable.member_id = 1; 
+2) 
+SELECT Books.genre, COUNT(BorrowingsTable.borrowing_id) AS borrowing_count 
+FROM Books 
+JOIN BorrowingsTable ON Books.book_id = BorrowingsTable.book_id 
+GROUP BY Books.genre 
+ORDER BY borrowing_count DESC; 
+3) 
+SELECT Books.title, Books.author, Books.genre, Books.publication_date, Books.isbn, 
+AVG(RatingsTable.rating) AS average_rating 
+FROM Books 
+JOIN RatingsTable ON Books.book_id = RatingsTable.book_id 
+GROUP BY Books.title, Books.author, Books.genre, Books.publication_date, Books.isbn 
+ORDER BY average_rating DESC; 
+4) 
+SELECT MembersTable.member_id, MembersTable.member_name, MembersTable.member_email, 
+MembersTable.member_phone, COUNT(BorrowingsTable.borrowing_id) AS books_borrowed 
+FROM MembersTable 
+JOIN BorrowingsTable ON MembersTable.member_id = BorrowingsTable.member_id 
+GROUP BY MembersTable.member_id, MembersTable.member_name, MembersTable.member_email, 
+MembersTable.member_phone 
+HAVING books_borrowed > 5 
+ORDER BY books_borrowed DESC; 
+5) 
+SELECT MembersTable.member_id, MembersTable.member_name, MembersTable.member_email, 
+MembersTable.member_phone, COUNT(BorrowingsTable.borrowing_id) AS books_borrowed 
+FROM MembersTable 
+LEFT JOIN BorrowingsTable ON MembersTable.member_id = BorrowingsTable.member_id 
+GROUP BY MembersTable.member_id, MembersTable.member_name, MembersTable.member_email, 
+MembersTable.member_phone 
+HAVING books_borrowed < 5 OR books_borrowed IS NULL 
+ORDER BY books_borrowed ASC; 
+6) 
+SELECT Books.title, Books.author, Books.genre, Books.publication_date, Books.isbn, 
+AVG(RatingsTable.rating) AS average_rating, COUNT(RatingsTable.rating) AS review_count 
+FROM Books 
+JOIN RatingsTable ON Books.book_id = RatingsTable.book_id 
+GROUP BY Books.title, Books.author, Books.genre, Books.publication_date, Books.isbn 
+HAVING review_count >= 5 
+ORDER BY average_rating DESC; 
+7) 
+SELECT SUM(Books.price * PurchasesTable.quantity) AS total_revenue 
+FROM Books 
+JOIN PurchasesTable ON Books.book_id = PurchasesTable.book_id; 
+8) 
+SELECT 
+Books.title, 
+AuthorsTable.author_name, 
+PublishersTable.publisher_name, 
+Books.publication_date, 
+Books.isbn 
+FROM 
+Books 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+JOIN 
+PublishersTable ON Books.publisher_id = PublishersTable.publisher_id; 
+9) 
+SELECT 
+Books.title, 
+AuthorsTable.author_name, 
+Books.genre, 
+Books.publication_date, 
+Books.isbn 
+FROM 
+Books 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+LEFT JOIN 
+BorrowingsTable ON Books.book_id = BorrowingsTable.book_id AND BorrowingsTable.is_returned = 
+false 
+WHERE 
+BorrowingsTable.borrowing_id IS NULL OR BorrowingsTable.return_date IS NOT NULL; 
+10) 
+SELECT 
+MembersTable.member_id, 
+MembersTable.member_name, 
+MembersTable.member_email, 
+MembersTable.member_phone 
+FROM 
+MembersTable 
+JOIN 
+BorrowingsTable ON MembersTable.member_id = BorrowingsTable.member_id 
+WHERE 
+BorrowingsTable.is_returned = false 
+AND BorrowingsTable.return_date < CURRENT_DATE; 
+11) 
+SELECT 
+Books.title, 
+AuthorsTable.author_name, 
+COUNT(BorrowingsTable.borrowing_id) AS borrowing_count 
+FROM 
+Books 
+JOIN 
+BorrowingsTable ON Books.book_id = BorrowingsTable.book_id 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+GROUP BY 
+Books.title, AuthorsTable.author_name 
+ORDER BY 
+borrowing_count DESC 
+LIMIT 10; 
+12) 
+SELECT 
+AVG(DATEDIFF(return_date, borrowing_date)) AS average_days_borrowed 
+FROM 
+BorrowingsTable 
+WHERE 
+is_returned = true; 
+13) 
+SELECT 
+YEAR(publication_date) AS publication_year, 
+COUNT(book_id) AS total_books_published 
+FROM 
+Books 
+GROUP BY 
+publication_year 
+ORDER BY 
+publication_year; 
+14) 
+SELECT 
+MembersTable.member_id, 
+MembersTable.member_name, 
+MembersTable.member_email, 
+MembersTable.member_phone, 
+COUNT(BorrowingsTable.borrowing_id) AS borrowings_count 
+FROM 
+MembersTable 
+JOIN 
+BorrowingsTable ON MembersTable.member_id = BorrowingsTable.member_id 
+GROUP BY 
+MembersTable.member_id, MembersTable.member_name, MembersTable.member_email, 
+MembersTable.member_phone 
+HAVING 
+borrowings_count > 1; 
+15) 
+SELECT 
+Books.title, 
+AuthorsTable.author_name, 
+AVG(RatingsTable.rating) AS average_rating 
+FROM 
+Books 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+LEFT JOIN 
+RatingsTable ON Books.book_id = RatingsTable.book_id 
+GROUP BY 
+Books.title, AuthorsTable.author_name 
+ORDER BY 
+average_rating DESC; 
+16) 
+SELECT 
+title, 
+author_name, 
+SUM(quantity_available) AS total_copies_available 
+FROM 
+Books 
+JOIN 
+AuthorsTable ON Books.author_id = AuthorsTable.author_id 
+GROUP BY 
+title, author_name; 
+17) 
+CREATE VIEW TransactionView AS 
+SELECT 
+member_id, 
+transaction_date 
+FROM 
+TransactionsTable; 
+GRANT SELECT ON TransactionView TO AnotherUser; 
+CREATE PROCEDURE SelectTransactionsByDate(IN specific_date DATE) 
+BEGIN 
+SELECT 
+member_id, 
+transaction_date 
+FROM 
+TransactionView 
+WHERE 
+transaction_date = specific_date; 
+END; 
